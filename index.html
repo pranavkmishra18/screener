@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Deep-Value Stock Screener</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #3b82f6;
+      --green: #10b981;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, monospace;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1380px; margin: 0 auto; }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .meta-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .pulse {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 8px var(--green);
+    }
+    .indexes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .idx-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .idx-region { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .idx-name { font-size: 0.9rem; font-weight: 600; margin: 2px 0 6px; }
+    .idx-price { font-size: 1.05rem; font-weight: 700; }
+    .idx-chg { font-size: 0.8rem; font-weight: 600; margin-left: 6px; }
+    .pos { color: var(--green); }
+    .neg { color: var(--red); }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .tabs { display: flex; gap: 8px; }
+    .tab-btn {
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: 0.15s;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .search-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      min-width: 250px;
+    }
+    .region-block { margin-bottom: 32px; }
+    .region-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e5e7eb;
+      margin-bottom: 10px;
+    }
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    th, td {
+      padding: 11px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: #161f33;
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(59, 130, 246, 0.06); }
+    .ticker-badge { font-weight: 700; color: #60a5fa; text-decoration: none; }
+    .ticker-badge:hover { text-decoration: underline; }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .pill-score { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .pill-basis-3 { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+    .pill-basis-2 { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    .pill-basis-1 { background: rgba(156, 163, 175, 0.15); color: #d1d5db; }
+    .why-tag { color: #d1d5db; font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Global Deep-Value & Fundamental Screener</h1>
+        <p style="font-size:0.82rem; color:var(--muted); margin-top:4px;">
+          Sorted by Highest Score &rarr; Multi-Pillar Basis (A+E+F) &rarr; Upside %
+        </p>
+      </div>
+      <div class="meta-bar">
+        <span class="pulse"></span>
+        <span id="last-updated">Loading data.json...</span>
+        <button class="tab-btn" onclick="loadData()">Refresh Now</button>
+      </div>
+    </header>
+
+    <div id="indexes-container" class="indexes-grid"></div>
+
+    <div class="controls">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setRegion('ALL', this)">All Regions</button>
+        <button class="tab-btn" onclick="setRegion('US', this)">US</button>
+        <button class="tab-btn" onclick="setRegion('EUROPE', this)">Europe</button>
+        <button class="tab-btn" onclick="setRegion('INDIA', this)">India</button>
+      </div>
+      <input
+        type="text"
+        id="search-input"
+        class="search-box"
+        placeholder="Filter by ticker, sector, or reason..."
+        oninput="renderTables()"
+      />
+    </div>
+
+    <div id="tables-container"></div>
+  </div>
+
+  <script>
+    let rawData = null;
+    let currentRegion = 'ALL';
+
+    async function loadData() {
+      try {
+        const res = await fetch(`data.json?t=${Date.now()}`);
+        if (!res.ok) throw new Error('data.json not found yet');
+        rawData = await res.json();
+
+        const dt = new Date(rawData.updated_utc);
+        document.getElementById('last-updated').textContent =
+          `Updated: ${dt.toLocaleString()} (Auto-refreshes every 30m)`;
+
+        renderIndexes();
+        renderTables();
+      } catch (err) {
+        document.getElementById('last-updated').textContent =
+          'Waiting for first GitHub Action run to generate data.json...';
+      }
+    }
+
+    function renderIndexes() {
+      const container = document.getElementById('indexes-container');
+      container.innerHTML = '';
+      if (!rawData || !rawData.indexes) return;
+
+      for (const [region, list] of Object.entries(rawData.indexes)) {
+        for (const item of list) {
+          const isPos = (item.pct_change || 0) >= 0;
+          const sign = isPos ? '+' : '';
+          const card = document.createElement('div');
+          card.className = 'idx-card';
+          card.innerHTML = `
+            <div class="idx-region">${region}</div>
+            <div class="idx-name">${item.name}</div>
+            <div>
+              <span class="idx-price">${item.price ? item.price.toLocaleString() : '-'}</span>
+              <span class="idx-chg ${isPos ? 'pos' : 'neg'}">
+                ${item.pct_change !== null ? `${sign}${item.pct_change.toFixed(2)}%` : ''}
+              </span>
+            </div>
+          `;
+          container.appendChild(card);
+        }
+      }
+    }
+
+    function setRegion(region, btn) {
+      currentRegion = region;
+      document.querySelectorAll('.tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTables();
+    }
+
+    function renderTables() {
+      const container = document.getElementById('tables-container');
+      container.innerHTML = '';
+      if (!rawData || !rawData.regions) return;
+
+      const query = document.getElementById('search-input').value.trim().toLowerCase();
+      const regionsToShow = currentRegion === 'ALL' ? ['US', 'EUROPE', 'INDIA'] : [currentRegion];
+
+      for (const region of regionsToShow) {
+        const rows = (rawData.regions[region] || []).filter(r =>
+          !query ||
+          r.symbol.toLowerCase().includes(query) ||
+          r.sector.toLowerCase().includes(query) ||
+          r.why_down.toLowerCase().includes(query)
+        );
+
+        const block = document.createElement('div');
+        block.className = 'region-block';
+        block.innerHTML = `
+          <div class="region-title">
+            UNDERVALUED WITH STRONG FUNDAMENTALS — ${region} (${rows.length})
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>NO</th>
+                  <th>TICKER</th>
+                  <th>SECTOR</th>
+                  <th class="num">PRICE</th>
+                  <th class="num">FALL</th>
+                  <th class="num">P/E</th>
+                  <th class="num">FP/E</th>
+                  <th class="num">ROE</th>
+                  <th class="num">SCORE</th>
+                  <th class="num">UPSIDE</th>
+                  <th class="num">MOS</th>
+                  <th>BASIS</th>
+                  <th>WHY DOWN (3-4 WDS)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.length === 0 ? `<tr><td colspan="13" style="text-align:center;color:var(--muted);">No matching stocks</td></tr>` :
+                  rows.map((r, idx) => {
+                    const plusCount = (r.basis.match(/\+/g) || []).length + 1;
+                    const basisClass = plusCount >= 3 ? 'pill-basis-3' : (plusCount === 2 ? 'pill-basis-2' : 'pill-basis-1');
+                    return `
+                      <tr>
+                        <td>${idx + 1}</td>
+                        <td>
+                          <a class="ticker-badge" href="https://finance.yahoo.com/quote/${encodeURIComponent(r.symbol)}" target="_blank" rel="noopener">
+                            ${r.symbol}
+                          </a>
+                        </td>
+                        <td>${r.sector}</td>
+                        <td class="num">${r.price !== null ? r.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '-'}</td>
+                        <td class="num neg">-${Math.round(r.fall)}%</td>
+                        <td class="num">${r.pe !== null ? r.pe.toFixed(1) : '-'}</td>
+                        <td class="num">${r.fpe !== null ? r.fpe.toFixed(1) : '-'}</td>
+                        <td class="num">${r.roe !== null ? Math.round(r.roe * 100) + '%' : '-'}</td>
+                        <td class="num" title="Passed: ${(r.flags || []).join(' ')}">
+                          <span class="pill pill-score">${r.points}/${r.possible} (${Math.round(r.score)}%)</span>
+                        </td>
+                        <td class="num pos" style="font-weight:700;">${r.upside !== null ? '+' + Math.round(r.upside) + '%' : '-'}</td>
+                        <td class="num">${r.mos ? r.mos + 'm' : '-'}</td>
+                        <td><span class="pill ${basisClass}">${r.basis}</span></td>
+                        <td class="why-tag">${r.why_down}</td>
+                      </tr>
+                    `;
+                  }).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+        container.appendChild(block);
+      }
+    }
+
+    loadData();
+    setInterval(loadData, 5 * 60 * 1000);
+  </script>
+</body>
+</html>
