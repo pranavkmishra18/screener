@@ -1,5 +1,5 @@
 {
-  "updated_utc": "2026-11-22T04:11:41Z",
+  "updated_utc": "2026-11-22T12:45:49Z",
   "period": "5y",
   "min_fall": 25,
   "min_score": 55,
@@ -139,7 +139,7 @@
         "mos": 15,
         "basis": "A+E+F",
         "basis_rank": 3,
-        "why_down": "Guidance Cut Reset",
+        "why_down": "Analyst Rating Reset",
         "qualifies": true,
         "qualifies_tier2": false
       },
@@ -476,7 +476,7 @@
         "mos": 20,
         "basis": "A+E",
         "basis_rank": 2,
-        "why_down": "Regulatory Headwinds",
+        "why_down": "Rate & Macro Pressure",
         "qualifies": true,
         "qualifies_tier2": false
       }
@@ -747,7 +747,7 @@
         "price": 56.4,
         "ath": 79.68,
         "fall": 29.2,
-        "pe": 10.5,
+        "pe": 10.3,
         "fpe": 9.3,
         "roe": 0.1931,
         "flags": [
@@ -771,8 +771,8 @@
         "possible": 17,
         "score": 88.2,
         "upside_peak": 41.3,
-        "upside": 33.2,
-        "mos": 11,
+        "upside": 34.6,
+        "mos": 14,
         "basis": "A+E",
         "basis_rank": 2,
         "why_down": "Margin Squeeze",
